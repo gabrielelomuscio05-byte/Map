@@ -1,12 +1,17 @@
-public class DiscreteNode extends SplitNode {
+package tree;
 
-    public DiscreteNode(Data trainingSet, int beginExampleIndex, int endExampleIndex, DiscreteAttribute attribute) {
+import data.Attribute;
+import data.Data;
+import data.DiscreteAttribute;
+
+class DiscreteNode extends SplitNode {
+
+    DiscreteNode(Data trainingSet, int beginExampleIndex, int endExampleIndex, DiscreteAttribute attribute) {
         super(trainingSet, beginExampleIndex, endExampleIndex, attribute);
     }
 
     @Override
     void setSplitInfo(Data trainingSet, int beginExampleIndex, int endExampleIndex, Attribute attribute) {
-        // Conteggio dei valori distinti nell'intervallo già ordinato
         int count = 1;
         Object currentVal = trainingSet.getExplanatoryValue(beginExampleIndex, attribute.getIndex());
         for (int i = beginExampleIndex + 1; i <= endExampleIndex; i++) {
@@ -19,7 +24,6 @@ public class DiscreteNode extends SplitNode {
 
         mapSplit = new SplitInfo[count];
 
-        // Popolamento dei blocchi contigui di split
         int child = 0;
         int start = beginExampleIndex;
         currentVal = trainingSet.getExplanatoryValue(beginExampleIndex, attribute.getIndex());

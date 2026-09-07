@@ -1,4 +1,8 @@
-public class LeafNode extends Node {
+package tree;
+
+import data.Data;
+
+class LeafNode extends Node {
 
     private Double predictedClassValue;
 
@@ -23,6 +27,6 @@ public class LeafNode extends Node {
 
     @Override
     public String toString() {
-        return "LEAF class=" + predictedClassValue + " " + super.toString();
+        return "LEAF : class=" + predictedClassValue + " " + super.toString();
     }
 }

@@ -1,4 +1,8 @@
-public abstract class Node {
+package tree;
+
+import data.Data;
+
+abstract class Node {
 
     private static int idNodeCount = 0;
     private int idNode;
@@ -11,7 +15,6 @@ public abstract class Node {
         this.beginExampleIndex = beginExampleIndex;
         this.endExampleIndex = endExampleIndex;
 
-        // Calcolo della media dell'attributo di classe nel sottoinsieme
         double sum = 0.0;
         int n = endExampleIndex - beginExampleIndex + 1;
         for (int i = beginExampleIndex; i <= endExampleIndex; i++) {
@@ -19,7 +22,6 @@ public abstract class Node {
         }
         double mean = sum / n;
 
-        // Calcolo dello SSE (Sum of Squared Errors)
         double sse = 0.0;
         for (int i = beginExampleIndex; i <= endExampleIndex; i++) {
             double diff = trainingSet.getClassValue(i) - mean;
@@ -48,6 +50,6 @@ public abstract class Node {
 
     @Override
     public String toString() {
-        return "Nodo: [Examples:" + beginExampleIndex + "-" + endExampleIndex + "] variance: " + variance;
+        return "Nodo: [Examples:" + beginExampleIndex + "-" + endExampleIndex + "] variance:" + variance;
     }
 }

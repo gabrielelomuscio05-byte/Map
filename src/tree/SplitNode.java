@@ -1,3 +1,8 @@
+package tree;
+
+import data.Attribute;
+import data.Data;
+
 abstract class SplitNode extends Node {
 
     class SplitInfo {
@@ -22,10 +27,6 @@ abstract class SplitNode extends Node {
             this.comparator = comparator;
         }
 
-        int getBeginindex() {
-            return beginIndex;
-        }
-
         int getBeginIndex() {
             return beginIndex;
         }
@@ -48,11 +49,12 @@ abstract class SplitNode extends Node {
         }
     }
 
-    Attribute attribute;
-    SplitInfo mapSplit[];
-    double splitVariance;
+    private Attribute attribute;
+    protected SplitInfo mapSplit[];
+    private double splitVariance;
 
     abstract void setSplitInfo(Data trainingSet, int beginExampleIndex, int endExampleIndex, Attribute attribute);
+
     abstract int testCondition(Object value);
 
     SplitNode(Data trainingSet, int beginExampleIndex, int endExampleIndex, Attribute attribute) {
@@ -61,10 +63,9 @@ abstract class SplitNode extends Node {
         trainingSet.sort(attribute, beginExampleIndex, endExampleIndex);
         setSplitInfo(trainingSet, beginExampleIndex, endExampleIndex, attribute);
 
-        // Calcolo varianza complessiva dello split
         splitVariance = 0;
         for (int i = 0; i < mapSplit.length; i++) {
-            double localVariance = new LeafNode(trainingSet, mapSplit[i].getBeginindex(), mapSplit[i].getEndIndex()).getVariance();
+            double localVariance = new LeafNode(trainingSet, mapSplit[i].getBeginIndex(), mapSplit[i].getEndIndex()).getVariance();
             splitVariance += localVariance;
         }
     }
@@ -90,7 +91,7 @@ abstract class SplitNode extends Node {
     String formulateQuery() {
         String query = "";
         for (int i = 0; i < mapSplit.length; i++) {
-            query += (i + ":" + attribute + mapSplit[i].getComparator() + mapSplit[i].getSplitValue()) + "\n";
+            query += i + ":" + attribute + mapSplit[i].getComparator() + mapSplit[i].getSplitValue() + "\n";
         }
         return query;
     }
