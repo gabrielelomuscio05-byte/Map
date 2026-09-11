@@ -2,13 +2,17 @@ package data;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Scanner;
+import java.util.Set;
+import java.util.TreeSet;
 
 public class Data {
 
     private Object data[][];
     private int numberOfExamples;
-    private Attribute explanatorySet[];
+    private List<Attribute> explanatorySet = new LinkedList<Attribute>();
     private ContinuousAttribute classAttribute;
 
     public Data(String fileName) throws TrainingDataException {
@@ -36,7 +40,6 @@ public class Data {
                 throw new TrainingDataException("Invalid schema in training set");
             }
 
-            explanatorySet = new Attribute[numberOfExplanatoryAttributes];
             short iAttribute = 0;
             boolean targetFound = false;
             boolean dataFound = false;
@@ -54,11 +57,14 @@ public class Data {
                     continue;
 
                 if (s[0].equals("@desc")) {
-                    if (s.length < 3 || iAttribute >= explanatorySet.length)
+                    if (s.length < 3 || iAttribute >= numberOfExplanatoryAttributes)
                         throw new TrainingDataException("Invalid schema in training set");
 
-                    String discreteValues[] = s[2].split(",");
-                    explanatorySet[iAttribute] = new DiscreteAttribute(s[1], iAttribute, discreteValues);
+                    Set<String> discreteValues = new TreeSet<String>();
+                    for (String value : s[2].split(","))
+                        discreteValues.add(value);
+
+                    explanatorySet.add(new DiscreteAttribute(s[1], iAttribute, discreteValues));
                     iAttribute++;
                 } else if (s[0].equals("@target")) {
                     if (s.length < 2)
@@ -88,7 +94,7 @@ public class Data {
             if (numberOfExamples <= 0)
                 throw new TrainingDataException("Empty training set");
 
-            data = new Object[numberOfExamples][explanatorySet.length + 1];
+            data = new Object[numberOfExamples][explanatorySet.size() + 1];
             short iRow = 0;
 
             while (sc.hasNextLine()) {
@@ -100,7 +106,7 @@ public class Data {
                     throw new TrainingDataException("The number of examples is inconsistent with @data");
 
                 s = line.split(",");
-                if (s.length != explanatorySet.length + 1)
+                if (s.length != explanatorySet.size() + 1)
                     throw new TrainingDataException("Invalid training example at row " + (iRow + 1));
 
                 for (short jColumn = 0; jColumn < s.length - 1; jColumn++)
@@ -133,10 +139,10 @@ public class Data {
     public String toString() {
         String value = "";
         for (int i = 0; i < numberOfExamples; i++) {
-            for (int j = 0; j < explanatorySet.length; j++)
+            for (int j = 0; j < explanatorySet.size(); j++)
                 value += data[i][j] + ",";
 
-            value += data[i][explanatorySet.length] + "\n";
+            value += data[i][explanatorySet.size()] + "\n";
         }
         return value;
     }
@@ -146,11 +152,11 @@ public class Data {
     }
 
     public int getNumberOfExplanatoryAttributes() {
-        return explanatorySet.length;
+        return explanatorySet.size();
     }
 
     public Double getClassValue(int exampleIndex) {
-        return (Double) data[exampleIndex][explanatorySet.length];
+        return (Double) data[exampleIndex][explanatorySet.size()];
     }
 
     public Object getExplanatoryValue(int exampleIndex, int attributeIndex) {
@@ -158,7 +164,7 @@ public class Data {
     }
 
     public Attribute getExplanatoryAttribute(int index) {
-        return explanatorySet[index];
+        return explanatorySet.get(index);
     }
 
     public ContinuousAttribute getClassAttribute() {

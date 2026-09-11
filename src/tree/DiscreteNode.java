@@ -12,37 +12,28 @@ class DiscreteNode extends SplitNode {
 
     @Override
     void setSplitInfo(Data trainingSet, int beginExampleIndex, int endExampleIndex, Attribute attribute) {
-        int count = 1;
-        Object currentVal = trainingSet.getExplanatoryValue(beginExampleIndex, attribute.getIndex());
-        for (int i = beginExampleIndex + 1; i <= endExampleIndex; i++) {
-            Object val = trainingSet.getExplanatoryValue(i, attribute.getIndex());
-            if (!val.equals(currentVal)) {
-                count++;
-                currentVal = val;
-            }
-        }
-
-        mapSplit = new SplitInfo[count];
+        mapSplit.clear();
 
         int child = 0;
         int start = beginExampleIndex;
-        currentVal = trainingSet.getExplanatoryValue(beginExampleIndex, attribute.getIndex());
+        Object currentVal = trainingSet.getExplanatoryValue(beginExampleIndex, attribute.getIndex());
+
         for (int i = beginExampleIndex + 1; i <= endExampleIndex; i++) {
             Object val = trainingSet.getExplanatoryValue(i, attribute.getIndex());
             if (!val.equals(currentVal)) {
-                mapSplit[child] = new SplitInfo(currentVal, start, i - 1, child);
+                mapSplit.add(new SplitInfo(currentVal, start, i - 1, child));
                 child++;
                 start = i;
                 currentVal = val;
             }
         }
-        mapSplit[child] = new SplitInfo(currentVal, start, endExampleIndex, child);
+        mapSplit.add(new SplitInfo(currentVal, start, endExampleIndex, child));
     }
 
     @Override
     int testCondition(Object value) {
-        for (int i = 0; i < mapSplit.length; i++) {
-            if (mapSplit[i].getSplitValue().equals(value)) {
+        for (int i = 0; i < mapSplit.size(); i++) {
+            if (mapSplit.get(i).getSplitValue().equals(value)) {
                 return i;
             }
         }

@@ -1,9 +1,12 @@
 package tree;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import data.Attribute;
 import data.Data;
 
-abstract class SplitNode extends Node {
+abstract class SplitNode extends Node implements Comparable<SplitNode> {
 
     class SplitInfo {
         Object splitValue;
@@ -50,7 +53,7 @@ abstract class SplitNode extends Node {
     }
 
     private Attribute attribute;
-    protected SplitInfo mapSplit[];
+    protected List<SplitInfo> mapSplit = new ArrayList<SplitInfo>();
     private double splitVariance;
 
     abstract void setSplitInfo(Data trainingSet, int beginExampleIndex, int endExampleIndex, Attribute attribute);
@@ -64,8 +67,8 @@ abstract class SplitNode extends Node {
         setSplitInfo(trainingSet, beginExampleIndex, endExampleIndex, attribute);
 
         splitVariance = 0;
-        for (int i = 0; i < mapSplit.length; i++) {
-            double localVariance = new LeafNode(trainingSet, mapSplit[i].getBeginIndex(), mapSplit[i].getEndIndex()).getVariance();
+        for (SplitInfo splitInfo : mapSplit) {
+            double localVariance = new LeafNode(trainingSet, splitInfo.getBeginIndex(), splitInfo.getEndIndex()).getVariance();
             splitVariance += localVariance;
         }
     }
@@ -81,26 +84,35 @@ abstract class SplitNode extends Node {
 
     @Override
     int getNumberOfChildren() {
-        return mapSplit.length;
+        return mapSplit.size();
     }
 
     SplitInfo getSplitInfo(int child) {
-        return mapSplit[child];
+        return mapSplit.get(child);
     }
 
     String formulateQuery() {
         String query = "";
-        for (int i = 0; i < mapSplit.length; i++) {
-            query += i + ":" + attribute + mapSplit[i].getComparator() + mapSplit[i].getSplitValue() + "\n";
+        for (int i = 0; i < mapSplit.size(); i++) {
+            query += i + ":" + attribute + mapSplit.get(i).getComparator() + mapSplit.get(i).getSplitValue() + "\n";
         }
         return query;
     }
 
     @Override
+    public int compareTo(SplitNode o) {
+        if (splitVariance < o.splitVariance)
+            return -1;
+        if (splitVariance > o.splitVariance)
+            return 1;
+        return 0;
+    }
+
+    @Override
     public String toString() {
         String v = "SPLIT : attribute=" + attribute + " " + super.toString() + " Split Variance: " + getVariance() + "\n";
-        for (int i = 0; i < mapSplit.length; i++) {
-            v += "\t" + mapSplit[i] + "\n";
+        for (SplitInfo splitInfo : mapSplit) {
+            v += "\t" + splitInfo + "\n";
         }
         return v;
     }

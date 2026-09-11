@@ -3,6 +3,8 @@ package tree;
 import data.Attribute;
 import data.Data;
 import data.DiscreteAttribute;
+import java.util.TreeSet;
+
 import utility.Keyboard;
 
 public class RegressionTree {
@@ -23,19 +25,16 @@ public class RegressionTree {
     }
 
     private SplitNode determineBestSplitNode(Data trainingSet, int begin, int end) {
-        SplitNode bestSplit = null;
-        double minVariance = Double.MAX_VALUE;
+        TreeSet<SplitNode> ts = new TreeSet<SplitNode>();
 
         for (int i = 0; i < trainingSet.getNumberOfExplanatoryAttributes(); i++) {
             Attribute attr = trainingSet.getExplanatoryAttribute(i);
             if (attr instanceof DiscreteAttribute) {
-                DiscreteNode currentNode = new DiscreteNode(trainingSet, begin, end, (DiscreteAttribute) attr);
-                if (bestSplit == null || currentNode.getVariance() < minVariance) {
-                    minVariance = currentNode.getVariance();
-                    bestSplit = currentNode;
-                }
+                ts.add(new DiscreteNode(trainingSet, begin, end, (DiscreteAttribute) attr));
             }
         }
+
+        SplitNode bestSplit = ts.isEmpty() ? null : ts.first();
 
         if (bestSplit != null) {
             trainingSet.sort(bestSplit.getAttribute(), begin, end);
