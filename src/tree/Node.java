@@ -1,8 +1,12 @@
 package tree;
 
+import java.io.Serializable;
+
 import data.Data;
 
-abstract class Node {
+abstract class Node implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private static int idNodeCount = 0;
     private int idNode;

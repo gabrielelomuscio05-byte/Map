@@ -1,5 +1,6 @@
 package tree;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -8,7 +9,12 @@ import data.Data;
 
 abstract class SplitNode extends Node implements Comparable<SplitNode> {
 
-    class SplitInfo {
+    private static final long serialVersionUID = 1L;
+
+    class SplitInfo implements Serializable {
+
+        private static final long serialVersionUID = 1L;
+
         Object splitValue;
         int beginIndex;
         int endIndex;

@@ -57,14 +57,18 @@ public class Data {
                     continue;
 
                 if (s[0].equals("@desc")) {
-                    if (s.length < 3 || iAttribute >= numberOfExplanatoryAttributes)
+                    if (s.length < 2 || iAttribute >= numberOfExplanatoryAttributes)
                         throw new TrainingDataException("Invalid schema in training set");
 
-                    Set<String> discreteValues = new TreeSet<String>();
-                    for (String value : s[2].split(","))
-                        discreteValues.add(value);
+                    if (s.length == 2) {
+                        explanatorySet.add(new ContinuousAttribute(s[1], iAttribute));
+                    } else {
+                        Set<String> discreteValues = new TreeSet<String>();
+                        for (String value : s[2].split(","))
+                            discreteValues.add(value);
 
-                    explanatorySet.add(new DiscreteAttribute(s[1], iAttribute, discreteValues));
+                        explanatorySet.add(new DiscreteAttribute(s[1], iAttribute, discreteValues));
+                    }
                     iAttribute++;
                 } else if (s[0].equals("@target")) {
                     if (s.length < 2)
@@ -77,6 +81,9 @@ public class Data {
 
             if (!dataFound)
                 throw new TrainingDataException("Missing data section in training set");
+
+            if (iAttribute != numberOfExplanatoryAttributes)
+                throw new TrainingDataException("Invalid schema in training set");
 
             if (!targetFound || classAttribute == null)
                 throw new TrainingDataException("Training set without numeric target variable");
@@ -109,8 +116,20 @@ public class Data {
                 if (s.length != explanatorySet.size() + 1)
                     throw new TrainingDataException("Invalid training example at row " + (iRow + 1));
 
-                for (short jColumn = 0; jColumn < s.length - 1; jColumn++)
-                    data[iRow][jColumn] = s[jColumn].trim();
+                for (short jColumn = 0; jColumn < s.length - 1; jColumn++) {
+                    Attribute attribute = explanatorySet.get(jColumn);
+                    String rawValue = s[jColumn].trim();
+
+                    if (attribute instanceof DiscreteAttribute) {
+                        data[iRow][jColumn] = rawValue;
+                    } else if (attribute instanceof ContinuousAttribute) {
+                        try {
+                            data[iRow][jColumn] = Double.valueOf(rawValue);
+                        } catch (NumberFormatException e) {
+                            throw new TrainingDataException("Invalid numeric value at row " + (iRow + 1));
+                        }
+                    }
+                }
 
                 try {
                     data[iRow][s.length - 1] = Double.valueOf(s[s.length - 1].trim());
@@ -211,11 +230,41 @@ public class Data {
         return j;
     }
 
+    private int partition(ContinuousAttribute attribute, int inf, int sup) {
+        int i, j;
+
+        i = inf;
+        j = sup;
+        int med = (inf + sup) / 2;
+        Double x = (Double) getExplanatoryValue(med, attribute.getIndex());
+        swap(inf, med);
+
+        while (true) {
+            while (i <= sup && ((Double) getExplanatoryValue(i, attribute.getIndex())).compareTo(x) <= 0) {
+                i++;
+            }
+
+            while (((Double) getExplanatoryValue(j, attribute.getIndex())).compareTo(x) > 0) {
+                j--;
+            }
+
+            if (i < j) {
+                swap(i, j);
+            } else
+                break;
+        }
+        swap(inf, j);
+        return j;
+    }
+
     private void quicksort(Attribute attribute, int inf, int sup) {
         if (sup >= inf) {
             int pos;
 
-            pos = partition((DiscreteAttribute) attribute, inf, sup);
+            if (attribute instanceof DiscreteAttribute)
+                pos = partition((DiscreteAttribute) attribute, inf, sup);
+            else
+                pos = partition((ContinuousAttribute) attribute, inf, sup);
 
             if ((pos - inf) < (sup - pos + 1)) {
                 quicksort(attribute, inf, pos - 1);

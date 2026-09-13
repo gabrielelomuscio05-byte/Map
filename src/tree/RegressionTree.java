@@ -1,13 +1,23 @@
 package tree;
 
-import data.Attribute;
-import data.Data;
-import data.DiscreteAttribute;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.TreeSet;
 
+import data.Attribute;
+import data.ContinuousAttribute;
+import data.Data;
+import data.DiscreteAttribute;
 import utility.Keyboard;
 
-public class RegressionTree {
+public class RegressionTree implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private Node root;
     private RegressionTree[] childTree;
@@ -28,17 +38,23 @@ public class RegressionTree {
         TreeSet<SplitNode> ts = new TreeSet<SplitNode>();
 
         for (int i = 0; i < trainingSet.getNumberOfExplanatoryAttributes(); i++) {
-            Attribute attr = trainingSet.getExplanatoryAttribute(i);
-            if (attr instanceof DiscreteAttribute) {
-                ts.add(new DiscreteNode(trainingSet, begin, end, (DiscreteAttribute) attr));
+            Attribute attribute = trainingSet.getExplanatoryAttribute(i);
+            SplitNode currentNode = null;
+
+            if (attribute instanceof DiscreteAttribute) {
+                currentNode = new DiscreteNode(trainingSet, begin, end, (DiscreteAttribute) attribute);
+            } else if (attribute instanceof ContinuousAttribute) {
+                currentNode = new ContinuousNode(trainingSet, begin, end, (ContinuousAttribute) attribute);
             }
+
+            if (currentNode != null)
+                ts.add(currentNode);
         }
 
         SplitNode bestSplit = ts.isEmpty() ? null : ts.first();
 
-        if (bestSplit != null) {
+        if (bestSplit != null)
             trainingSet.sort(bestSplit.getAttribute(), begin, end);
-        }
 
         return bestSplit;
     }
@@ -67,16 +83,16 @@ public class RegressionTree {
     public Double predictClass() throws UnknownValueException {
         if (root instanceof LeafNode)
             return ((LeafNode) root).getPredictedClassValue();
-        else {
-            int risp;
-            System.out.println(((SplitNode) root).formulateQuery());
-            risp = Keyboard.readInt();
-            if (risp == -1 || risp >= root.getNumberOfChildren())
-                throw new UnknownValueException("The answer should be an integer between 0 and "
-                        + (root.getNumberOfChildren() - 1) + "!");
-            else
-                return childTree[risp].predictClass();
-        }
+
+        int risp;
+        System.out.println(((SplitNode) root).formulateQuery());
+        risp = Keyboard.readInt();
+
+        if (risp == -1 || risp >= root.getNumberOfChildren())
+            throw new UnknownValueException("The answer should be an integer between 0 and "
+                    + (root.getNumberOfChildren() - 1) + "!");
+
+        return childTree[risp].predictClass();
     }
 
     public void printTree() {
@@ -90,9 +106,8 @@ public class RegressionTree {
         String tree = root.toString() + "\n";
 
         if (!(root instanceof LeafNode)) {
-            for (int i = 0; i < childTree.length; i++) {
+            for (int i = 0; i < childTree.length; i++)
                 tree += childTree[i];
-            }
         }
         return tree;
     }
@@ -115,6 +130,19 @@ public class RegressionTree {
                 String next = current.isEmpty() ? currentCondition : current + " AND " + currentCondition;
                 childTree[i].printRules(next);
             }
+        }
+    }
+
+    public void salva(String nomeFile) throws FileNotFoundException, IOException {
+        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(nomeFile))) {
+            out.writeObject(this);
+        }
+    }
+
+    public static RegressionTree carica(String nomeFile)
+            throws FileNotFoundException, IOException, ClassNotFoundException {
+        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(nomeFile))) {
+            return (RegressionTree) in.readObject();
         }
     }
 }
