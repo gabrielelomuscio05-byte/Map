@@ -88,10 +88,11 @@ public class RegressionTree implements Serializable {
         System.out.println(((SplitNode) root).formulateQuery());
         risp = Keyboard.readInt();
 
-        if (risp == -1 || risp >= root.getNumberOfChildren())
-            throw new UnknownValueException("The answer should be an integer between 0 and "
-                    + (root.getNumberOfChildren() - 1) + "!");
-
+        if (risp < 0 || risp >= root.getNumberOfChildren())
+    throw new UnknownValueException(
+        "The answer should be an integer between 0 and "
+        + (root.getNumberOfChildren() - 1) + "!"
+    );
         return childTree[risp].predictClass();
     }
 
